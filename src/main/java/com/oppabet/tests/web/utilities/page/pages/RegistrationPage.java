@@ -11,17 +11,25 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.util.Iterator;
+
 public class RegistrationPage extends BasePage {
 
   @FindBy(xpath = "//*[contains(text(),'By e-mail')]")
   private WebElement byEmail;
-  @FindBy(xpath = "//div[@class='c-registration__block c-registration__block--country']//div[@class='multiselect__select']")//input[@placeholder='Select country']
+  @FindBy(xpath = "//div[@class='c-registration__block c-registration__block--country']//div[@class='multiselect c-registration__select']")
   private WebElement countryInput;
-  @FindBy(xpath = "//input[@placeholder='Select region']")
+  @FindBy(xpath = "//input[contains(@placeholder,'Select country')]")
+  private WebElement countryInputSend;
+  @FindBy(xpath = "//div[@class='c-registration__block c-registration__block--region']//div[@class='multiselect c-registration__select']")
   private WebElement regionInput;
-  @FindBy(xpath = "//input[@placeholder='Select city']")
+  @FindBy(xpath = "//input[contains(@placeholder,'Select region')]")
+  private WebElement regionInputSend;
+  @FindBy(xpath = "//div[@class='c-registration__block c-registration__block--city']//div[@class='multiselect c-registration__select']")
   private WebElement cityInput;
-  @FindBy(xpath = "//*[@class='c-registration__body']//input[@placeholder='Select currency']")
+  @FindBy(xpath = "//input[contains(@placeholder,'Select city')]")
+  private WebElement cityInputSend;
+  @FindBy(xpath = "//div[@class='multiselect c-registration__select multiselect--above']")
   private WebElement currencyInput;
   @FindBy(xpath = "//input[@id='popup_registratio_email']")
   private WebElement emailInput;
@@ -56,7 +64,7 @@ public class RegistrationPage extends BasePage {
     (new WebDriverWait(Driver.getDriver(), 30)).until(ExpectedConditions
             .elementToBeClickable(countryInput));
     countryInput.sendKeys(country);
-    countryInput.sendKeys(Keys.ENTER);
+    countryInputSend.sendKeys(Keys.ENTER);
     return new RegistrationPage();
   }
 
@@ -74,9 +82,11 @@ public class RegistrationPage extends BasePage {
   public RegistrationPage selectRegion(int region) {
     if (isSelectRegionInputDisplayed()) {
       for (int i = 0; i < region; i++) {
-        regionInput.sendKeys(Keys.DOWN);
+        (new WebDriverWait(Driver.getDriver(), 30)).until(ExpectedConditions
+                .elementToBeClickable(regionInputSend));
+        regionInputSend.sendKeys(Keys.DOWN);
       }
-      regionInput.sendKeys(Keys.ENTER);
+      regionInputSend.sendKeys(Keys.ENTER);
       return new RegistrationPage();
     } else
       return this;
@@ -100,9 +110,9 @@ public class RegistrationPage extends BasePage {
   @Step("Выбираем город \"{city}\".")
   public RegistrationPage selectCity(int city) {
     for (int i = 0; i < city; i++) {
-      cityInput.sendKeys(Keys.DOWN);
+      cityInputSend.sendKeys(Keys.DOWN);
     }
-    cityInput.sendKeys(Keys.ENTER);
+    cityInputSend.sendKeys(Keys.ENTER);
     return new RegistrationPage();
   }
 
@@ -194,9 +204,17 @@ public class RegistrationPage extends BasePage {
   @Step("Заполняем поля формы регистрации.")
   public MustLogInPopUp fillRegistrationForm(User user) {
     String pwd = user.getPassword();
+    int region = 0;
+    int city = 0;
+    for (Integer integer : user.getRegion().keySet()) {
+      region = integer;
+    }
+    for (Integer integer : user.getCity().keySet()) {
+      city = integer;
+    }
     selectCountry(user.getCountry());
-    selectRegion(Integer.parseInt(String.valueOf(user.getRegion().keySet())));
-    selectCity(Integer.parseInt(String.valueOf(user.getCity().keySet())));
+    selectRegion(region);
+    selectCity(city);
     typeEmail(user.getEmail());
     typeName(user.getName());
     typePassword(pwd);
